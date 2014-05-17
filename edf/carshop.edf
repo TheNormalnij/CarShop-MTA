@@ -1,0 +1,11 @@
+<def name="CarShop">
+
+	<element name="sellCar" friendlyname="Car for sale" icon="edf/carshop.png">
+		<data name="position" type="coord3d" default="0,0,0" />
+		<data name="rotation" type="coord3d" default="0,0,0" />
+		<data name="model" type="natural" default="400" />
+		<data name="cost" type="natural" default="0" />
+		<vehicle position="!position!" rotation="!rotation!" model="!model!" />
+	</element>
+
+</def>

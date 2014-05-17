@@ -1,0 +1,13 @@
+<meta>
+	<info author="TheNormalnij" version="1.1" name="Car Shop script" type="script" edf:definition="edf/carshop.edf" />
+    <script src="core.lua" type="server" />
+    <script src="client.lua" type="client" />
+    <file src="edf/carshop.png" type="client" />
+    <settings>
+    		<setting name="*buyCarLimit" value="10"
+					friendlyname="Avto linit"
+					accept="0-300"
+					desc="Maximum vehicles count in player database"
+					/>
+    </settings>
+</meta>
