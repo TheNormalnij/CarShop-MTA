@@ -8,6 +8,7 @@ addEvent( 'sellMyCar', true )
 addEvent( 'updateList', true )
 addEvent( 'spawnMyCar', true )
 addEvent( 'destroyMyCar', true )
+addEvent( 'changeCarLockState', true )
 
 function initShops()
 	dbExec( sqlLink, -- AUTOINCREMENT
@@ -184,14 +185,6 @@ function dbCarDelete()
 	end
 end
 
-function fastRand( to, count )
-	local rand = {}
-	for i = 1, count do
-		rand[i] = math.random( 0, to )
-	end
-	return rand
-end
-
 function updatelist()
 		dbQuery (
 		function ( queryHandle, tPlayer )
@@ -220,8 +213,8 @@ function updatelist()
 				end
 		end,
 	{ source },
-		sqlLink, 
- 
+		sqlLink,
+
 		"SELECT * FROM cars WHERE owner = ? ;",
 	getAccountName( getPlayerAccount( source ) )
 	)
@@ -287,16 +280,18 @@ function updateCarState()
 	players[source] = nil
 end
 
-function updateWhenPlayerLogin()
+addEventHandler( 'onPlayerLogin', root, function()
 	triggerEvent( 'updateList', source )
-end
-addEventHandler( 'onPlayerLogin', root, updateWhenPlayerLogin )
+end )
 
-function destroyMyCar( id )
+addEventHandler( 'destroyMyCar', root, function ( id )
+	if not players[source] or not players[source][id] then
+		return
+	end
 	local car = players[source][id]['element']
 	if not isElement( car ) then
 		outputChatBox( 'Авто нет, операция отменена.', source )
-		return;
+		return
 	end
 	
 	outputChatBox( 'Операция будет выполнена через 10 сек. ', source )
@@ -309,8 +304,46 @@ function destroyMyCar( id )
 		end
 	end, 10000, 1, source, id, car )
 
-end
-addEventHandler( 'destroyMyCar', root, destroyMyCar )
+end )
+
+addEventHandler( 'changeCarLockState', root, function( id )
+	if not players[source] or not players[source][id] then
+		return
+	end
+	local car = players[source][id]['element']
+	if not isElement( car ) then
+		outputChatBox( 'Авто нет, операция отменена.', source )
+		return
+	end
+	if isElementInWater( car ) then
+		outputChatBox( 'Авто в воде', source )
+		return
+	end
+	if not isVehicleOnGround( car ) then
+		outputChatBox( 'Авто не на земле', source )
+		return
+	end
+	local velocity = { getElementVelocity( car ) }
+	if ( velocity[1]^2 + velocity[2]^2 + velocity[3]^2) ^0.5 > 0.5 then
+		outputChatBox( 'Авто в движении', source )
+		return
+	end
+	for i, player in pairs( getVehicleOccupants( car ) ) do
+		if player then
+			outputChatBox( 'В авто кто-то есть', source )
+			return
+		end
+	end
+	local newState = not isVehicleLocked( car )
+	setVehicleLocked( car, newState )
+	setVehicleDoorsUndamageable( car, newState )
+	setVehicleDamageProof( car, newState )
+	setVehicleEngineState( car, not newState )
+	setElementFrozen( car, newState )
+	outputChatBox( 'Авто ' .. ( newState and 'закрыто' or 'открыто' ), source )
+end )
+
+-- SELL INTERFEACE
 
 function sellCar( newOwnerPlayer )
 	if not sells[newOwnerPlayer] then return false end
@@ -400,3 +433,4 @@ function sell( id, name, money, newOwnerPlayer )
 	end
 addEventHandler( 'sellMyCar', root, sell )
 
+--
